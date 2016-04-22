@@ -17,10 +17,10 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
-    buildTypes.each {
-        it.buildConfigField 'String', 'THE_MOVIEDB_API_KEY', '"b09e82f7207ba8b72b2f4747077ba459"'
-    }
 
+}
+repositories {
+    mavenCentral()
 }
 
 dependencies {
