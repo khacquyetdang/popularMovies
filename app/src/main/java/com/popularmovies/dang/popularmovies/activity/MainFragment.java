@@ -1,9 +1,13 @@
-package com.popularmovies.dang.popularmovies;
+package com.popularmovies.dang.popularmovies.activity;
 
+import android.database.DataSetObserver;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -11,8 +15,15 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.ListView;
+import android.widget.GridView;
+import android.widget.ImageView;
+import android.widget.ListAdapter;
+import android.widget.TextView;
 import android.widget.Toast;
+
+import com.popularmovies.dang.popularmovies.R;
+import com.popularmovies.dang.popularmovies.data.Movie;
+import com.squareup.picasso.Picasso;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -28,15 +39,17 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 
+import static android.support.v7.widget.RecyclerView.*;
+
 /**
  * A placeholder fragment containing a simple view.
  */
 public class MainFragment extends Fragment {
 
     private final static String LOG_TAG = MainFragment.class.getSimpleName();
-    private ArrayList<String> moviesentry;
-    private ArrayAdapter<String> movielistadaptateur;
-    private ListView listView;
+    private ArrayList<Movie> moviesentry;
+    private MovieGridAdapter movielistadaptateur;
+    private RecyclerView gridView;
 
     private String themoviedbApiKey;
     private static final String THEMOVIEDB_BASE_URL= "api.themoviedb.org";
@@ -56,16 +69,7 @@ public class MainFragment extends Fragment {
         updateMovie();
     }
 
-    private void updateMovie() {
-        if (themoviedbApiKey == null || themoviedbApiKey.equals(""))
-            themoviedbApiKey = getApiKey();
-        if (getActivity() != null) {
-            currentPage++;
-            if (currentPage < maximumPageIndex && currentPage >= minimumPageIndex) {
-                new FetchMovieTask().execute();
-            }
-        }
-    }
+
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -81,29 +85,31 @@ public class MainFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
-        listView = (ListView) rootView.findViewById(R.id.listview_movie);
-        moviesentry = new ArrayList<String>();
-        movielistadaptateur = new ArrayAdapter<>(getContext(), R.layout.list_item_movie, moviesentry);
+        gridView = (RecyclerView) rootView.findViewById(R.id.gridview_movie);
+        moviesentry = new ArrayList<Movie>();
+        movielistadaptateur = new MovieGridAdapter();
 
-        listView.setAdapter(movielistadaptateur);
-
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        LayoutManager mLayoutManager = new GridLayoutManager(getContext(), 3);
+        gridView.setLayoutManager(mLayoutManager);
+           gridView.setAdapter(movielistadaptateur);
+/*
+        gridView.setoni
+        gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Toast toast = Toast.makeText(getActivity(), moviesentry.get(position), Toast.LENGTH_LONG);
+                Toast toast = Toast.makeText(getActivity(), moviesentry.get(position).toString(), Toast.LENGTH_LONG);
                 toast.show();
             }
         });
+  */
         return rootView;
     }
 
     private void updateData(String moviesJson) {
         try {
             moviesentry.clear();
-            String[] moviesArray = getMoviesDataFromJson(moviesJson);
-            Collections.addAll(moviesentry, moviesArray);
-            /*JSONArray foreCastList = jsonObject.getJSONArray("list");
-            for (int i = 0; i < foreCastList.length(); i++) {
+            moviesentry = new ArrayList<>(getMoviesDataFromJson(moviesJson));
+            /*for (int i = 0; i < foreCastList.length(); i++) {
                 moviesentry.add(foreCastList.getString(i));
             }*/
             movielistadaptateur.notifyDataSetChanged();
@@ -224,7 +230,7 @@ public class MainFragment extends Fragment {
      * Fortunately parsing is easy:  constructor takes the JSON string and converts it
      * into an Object hierarchy for us.
      */
-    private String[] getMoviesDataFromJson(String forecastJsonStr)
+    private ArrayList<Movie> getMoviesDataFromJson(String forecastJsonStr)
             throws JSONException {
 
         // These are the names of the JSON objects that need to be extracted.
@@ -243,16 +249,13 @@ public class MainFragment extends Fragment {
         JSONObject moviesResultJson = new JSONObject(forecastJsonStr);
         JSONArray moviesArrayJson = moviesResultJson.getJSONArray(MOVIE_LIST);
 
-        String[] resultStrs = new String[moviesArrayJson.length()];
+
+        ArrayList<Movie> movieArrayList = new ArrayList<>();
 
         for (int i = 0; i < moviesArrayJson.length(); i++) {
 
             // Get the JSON object representing the day
             JSONObject movieJson = moviesArrayJson.getJSONObject(i);
-
-            // The date/time is returned as a long.  We need to convert that
-            // into something human-readable, since most people won't read "1400356800" as
-            // "this saturday".
 
             // description is in a child array called "weather", which is 1 element long.
             String title = movieJson.getString(MOVIE_TITLE);
@@ -264,14 +267,25 @@ public class MainFragment extends Fragment {
             String popularity = movieJson.getString(MOVIE_POPULARITY);
             int vote_count = movieJson.getInt(MOVIE_VOTE_COUNT);
             Double vote_averagev= movieJson.getDouble(MOVIE_VOTE_AVERAGE);
-            resultStrs[i] = title + " - " + overview + " - " + releasedate;
+
+            Movie amovie = new Movie(title, overview, releasedate,
+                    originaltitle, poster_path, id, popularity, vote_count, vote_averagev);
+            movieArrayList.add(amovie);
         }
 
-        for (String s : resultStrs) {
-            Log.v(LOG_TAG, "Forecast entry: " + s);
-        }
-        return resultStrs;
+        return movieArrayList;
 
+    }
+
+    private void updateMovie() {
+        if (themoviedbApiKey == null || themoviedbApiKey.equals(""))
+            themoviedbApiKey = getApiKey();
+        if (getActivity() != null) {
+            currentPage++;
+            if (currentPage < maximumPageIndex && currentPage >= minimumPageIndex) {
+                new FetchMovieTask().execute();
+            }
+        }
     }
 
     private class FetchMovieTask extends AsyncTask<Void, Void, String> {
@@ -290,5 +304,46 @@ public class MainFragment extends Fragment {
             super.onPostExecute(movieJson);
             updateData(movieJson);
         }
+    }
+
+    public class MovieGridAdapter extends RecyclerView.Adapter<MovieGridAdapter.ViewHolder>{
+
+
+        // Provide a reference to the views for each data item
+        // Complex data items may need more than one view per item, and
+        // you provide access to all the views for a data item in a view holder
+        public class ViewHolder extends RecyclerView.ViewHolder {
+            // each data item is just a string in this case
+            public ImageView mPoster;
+
+            public ViewHolder(View v) {
+                super(v);
+                mPoster = (ImageView) v.findViewById(R.id.movie_poster);
+            }
+        }
+
+        @Override
+        public MovieGridAdapter.ViewHolder onCreateViewHolder(ViewGroup parent,
+                                                       int viewType) {
+            // create a new view
+            View v = LayoutInflater.from(parent.getContext())
+                    .inflate(R.layout.grid_item_movie, parent, false);
+            ViewHolder vh= new ViewHolder(v);
+            return vh;
+        }
+
+        @Override
+        public void onBindViewHolder(ViewHolder holder, int position) {
+            Movie movie = moviesentry.get(position);
+          //Picasso.with(getContext()).load("http://image.tmdb.org/t/p/w185//" + movie.getPoster_path()).into(holder.mPoster);
+            String movieUrl =  "http://image.tmdb.org/t/p/w185//" + movie.getPoster_path();
+            Picasso.with(getContext()).load(movieUrl).into(holder.mPoster);
+        }
+
+        @Override
+        public int getItemCount() {
+            return moviesentry == null ? 0 : moviesentry.size();
+        }
+
     }
 }

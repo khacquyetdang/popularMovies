@@ -1,4 +1,4 @@
-package com.popularmovies.dang.popularmovies;
+package com.popularmovies.dang.popularmovies.activity;
 
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -8,6 +8,8 @@ import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+
+import com.popularmovies.dang.popularmovies.R;
 
 import java.io.BufferedReader;
 import java.io.IOException;
