@@ -3,10 +3,12 @@ package com.popularmovies.dang.popularmovies.data;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import java.io.Serializable;
+
 /**
  * Created by dang on 23-Apr-16.
  */
-public class Movie implements Parcelable {
+public class Movie implements Serializable {
 
     private String title;
     private String overview;
@@ -17,6 +19,7 @@ public class Movie implements Parcelable {
     private String popularity;
     private int vote_count;
     private Double vote_averagev;
+    public final static String parentPosterPath = "http://image.tmdb.org/t/p/w185";
 
 
 
@@ -104,27 +107,4 @@ public class Movie implements Parcelable {
         this.vote_averagev = vote_averagev;
     }
 
-    protected Movie(Parcel in) {
-    }
-
-    public static final Creator<Movie> CREATOR = new Creator<Movie>() {
-        @Override
-        public Movie createFromParcel(Parcel in) {
-            return new Movie(in);
-        }
-
-        @Override
-        public Movie[] newArray(int size) {
-            return new Movie[size];
-        }
-    };
-
-    @Override
-    public int describeContents() {
-        return 0;
-    }
-
-    @Override
-    public void writeToParcel(Parcel dest, int flags) {
-    }
 }

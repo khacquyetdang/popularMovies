@@ -1,25 +1,21 @@
 package com.popularmovies.dang.popularmovies.activity;
 
-import android.database.DataSetObserver;
+import android.content.Context;
+import android.content.Intent;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.GridLayoutManager;
-import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.GestureDetector;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.GridView;
 import android.widget.ImageView;
-import android.widget.ListAdapter;
-import android.widget.TextView;
-import android.widget.Toast;
 
 import com.popularmovies.dang.popularmovies.R;
 import com.popularmovies.dang.popularmovies.data.Movie;
@@ -37,7 +33,6 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Collections;
 
 import static android.support.v7.widget.RecyclerView.*;
 
@@ -52,7 +47,7 @@ public class MainFragment extends Fragment {
     private RecyclerView gridView;
 
     private String themoviedbApiKey;
-    private static final String THEMOVIEDB_BASE_URL= "api.themoviedb.org";
+    private static final String THEMOVIEDB_BASE_URL = "api.themoviedb.org";
     private int currentPage = 0;
     private int maximumPageIndex = 1000;
     private int minimumPageIndex = 1;
@@ -68,7 +63,6 @@ public class MainFragment extends Fragment {
         super.onStart();
         updateMovie();
     }
-
 
 
     @Override
@@ -91,17 +85,21 @@ public class MainFragment extends Fragment {
 
         LayoutManager mLayoutManager = new GridLayoutManager(getContext(), 3);
         gridView.setLayoutManager(mLayoutManager);
-           gridView.setAdapter(movielistadaptateur);
-/*
-        gridView.setoni
-        gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        gridView.setAdapter(movielistadaptateur);
+
+        gridView.addOnItemTouchListener(new RecyclerTouchListener(getContext(), gridView, new ClickListener() {
             @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Toast toast = Toast.makeText(getActivity(), moviesentry.get(position).toString(), Toast.LENGTH_LONG);
-                toast.show();
+            public void onClick(View view, int position) {
+                Intent movieDetailIntent = new Intent(getActivity(), MovieDetailActivity.class);
+                movieDetailIntent.putExtra("movie", moviesentry.get(position));
+                startActivity(movieDetailIntent);
             }
-        });
-  */
+
+            @Override
+            public void onLongClick(View view, int position) {
+
+            }
+        }));
         return rootView;
     }
 
@@ -226,7 +224,7 @@ public class MainFragment extends Fragment {
     /**
      * Take the String representing the complete forecast in JSON Format and
      * pull out the data we need to construct the Strings needed for the wireframes.
-     * <p>
+     * <p/>
      * Fortunately parsing is easy:  constructor takes the JSON string and converts it
      * into an Object hierarchy for us.
      */
@@ -235,13 +233,13 @@ public class MainFragment extends Fragment {
 
         // These are the names of the JSON objects that need to be extracted.
         final String MOVIE_LIST = "results";
-        final String MOVIE_TITLE= "title";
-        final String MOVIE_ORIGINAL_TITLE= "original_title";
-        final String MOVIE_ORIGINAL_LANGUAGE= "original_language";
+        final String MOVIE_TITLE = "title";
+        final String MOVIE_ORIGINAL_TITLE = "original_title";
+        final String MOVIE_ORIGINAL_LANGUAGE = "original_language";
         final String MOVIE_POSTER_PATH = "poster_path";
         final String MOVIE_ADULT = "adult";
         final String MOVIE_OVERVIEW = "overview";
-        final String MOVIE_RELEASE_DATE= "release_date";
+        final String MOVIE_RELEASE_DATE = "release_date";
         final String MOVIE_ID = "id";
         final String MOVIE_POPULARITY = "popularity";
         final String MOVIE_VOTE_COUNT = "vote_count";
@@ -266,7 +264,7 @@ public class MainFragment extends Fragment {
             String id = movieJson.getString(MOVIE_ID);
             String popularity = movieJson.getString(MOVIE_POPULARITY);
             int vote_count = movieJson.getInt(MOVIE_VOTE_COUNT);
-            Double vote_averagev= movieJson.getDouble(MOVIE_VOTE_AVERAGE);
+            Double vote_averagev = movieJson.getDouble(MOVIE_VOTE_AVERAGE);
 
             Movie amovie = new Movie(title, overview, releasedate,
                     originaltitle, poster_path, id, popularity, vote_count, vote_averagev);
@@ -306,8 +304,62 @@ public class MainFragment extends Fragment {
         }
     }
 
-    public class MovieGridAdapter extends RecyclerView.Adapter<MovieGridAdapter.ViewHolder>{
+    public interface ClickListener {
+        void onClick(View view, int position);
 
+        void onLongClick(View view, int position);
+    }
+
+    public static class RecyclerTouchListener implements RecyclerView.OnItemTouchListener {
+
+        private GestureDetector gestureDetector;
+        private ClickListener clickListener;
+
+        public RecyclerTouchListener(Context context, final RecyclerView recyclerView, final ClickListener clickListener) {
+            this.clickListener = clickListener;
+            gestureDetector = new GestureDetector(context, new GestureDetector.SimpleOnGestureListener() {
+                @Override
+                public boolean onSingleTapUp(MotionEvent e) {
+                    return true;
+                }
+
+                @Override
+                public void onLongPress(MotionEvent e) {
+                    View child = recyclerView.findChildViewUnder(e.getX(), e.getY());
+                    if (child != null && clickListener != null) {
+                        clickListener.onLongClick(child, recyclerView.getChildPosition(child));
+                    }
+                }
+            });
+        }
+
+        @Override
+        public boolean onInterceptTouchEvent(RecyclerView rv, MotionEvent e) {
+
+            View child = rv.findChildViewUnder(e.getX(), e.getY());
+            if (child != null && clickListener != null && gestureDetector.onTouchEvent(e)) {
+                clickListener.onClick(child, rv.getChildPosition(child));
+            }
+            return false;
+        }
+
+        @Override
+        public void onTouchEvent(RecyclerView rv, MotionEvent e) {
+        }
+
+        @Override
+        public void onRequestDisallowInterceptTouchEvent(boolean disallowIntercept) {
+
+        }
+    }
+
+    public class MovieGridAdapter extends RecyclerView.Adapter<MovieGridAdapter.ViewHolder> implements OnClickListener {
+
+
+        @Override
+        public void onClick(View v) {
+
+        }
 
         // Provide a reference to the views for each data item
         // Complex data items may need more than one view per item, and
@@ -324,19 +376,19 @@ public class MainFragment extends Fragment {
 
         @Override
         public MovieGridAdapter.ViewHolder onCreateViewHolder(ViewGroup parent,
-                                                       int viewType) {
+                                                              int viewType) {
             // create a new view
             View v = LayoutInflater.from(parent.getContext())
                     .inflate(R.layout.grid_item_movie, parent, false);
-            ViewHolder vh= new ViewHolder(v);
+            ViewHolder vh = new ViewHolder(v);
             return vh;
         }
 
         @Override
         public void onBindViewHolder(ViewHolder holder, int position) {
             Movie movie = moviesentry.get(position);
-          //Picasso.with(getContext()).load("http://image.tmdb.org/t/p/w185//" + movie.getPoster_path()).into(holder.mPoster);
-            String movieUrl =  "http://image.tmdb.org/t/p/w185//" + movie.getPoster_path();
+            //Picasso.with(getContext()).load("http://image.tmdb.org/t/p/w185//" + movie.getPoster_path()).into(holder.mPoster);
+            String movieUrl = "http://image.tmdb.org/t/p/w185//" + movie.getPoster_path();
             Picasso.with(getContext()).load(movieUrl).into(holder.mPoster);
         }
 
