@@ -17,6 +17,8 @@ public class MovieDetailActivityFragment extends Fragment {
 
     private Movie movie;
     private TextView descriptionView;
+    private TextView releaseDateTxtView;
+    private TextView rateTingView;
 
     public MovieDetailActivityFragment() {
     }
@@ -35,5 +37,11 @@ public class MovieDetailActivityFragment extends Fragment {
 
         descriptionView = (TextView) getActivity().findViewById(R.id.movie_detail_description);
         descriptionView.setText(movie.getOverview());
+
+        releaseDateTxtView = (TextView) getActivity().findViewById(R.id.movie_detail_release_date);
+        releaseDateTxtView.setText(movie.getReleasedate());
+
+        rateTingView = (TextView) getActivity().findViewById(R.id.movie_detail_rate);
+        rateTingView.setText("" + movie.getVote_averagev());
     }
 }

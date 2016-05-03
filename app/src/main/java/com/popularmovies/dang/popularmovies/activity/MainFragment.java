@@ -83,7 +83,7 @@ public class MainFragment extends Fragment {
         moviesentry = new ArrayList<Movie>();
         movielistadaptateur = new MovieGridAdapter();
 
-        LayoutManager mLayoutManager = new GridLayoutManager(getContext(), 3);
+        LayoutManager mLayoutManager = new GridLayoutManager(getContext(), 2);
         gridView.setLayoutManager(mLayoutManager);
         gridView.setAdapter(movielistadaptateur);
 
