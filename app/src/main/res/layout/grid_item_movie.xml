@@ -12,6 +12,6 @@
         android:id="@+id/movie_poster"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:scaleType="center"/>
+        android:adjustViewBounds="true"/>
 
 </RelativeLayout>
