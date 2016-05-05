@@ -5,7 +5,6 @@
     android:minHeight="?android:attr/listPreferredItemHeight"
     android:focusable="true"
     android:clickable="true"
-    android:background="@color/title"
     android:orientation="vertical">
 
     <ImageView

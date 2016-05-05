@@ -67,6 +67,10 @@ public class Movie implements Serializable {
         this.originaltitle = originaltitle;
     }
 
+    public String getPoster_full_path() {
+        return  Movie.parentPosterPath + this.getPoster_path();
+    }
+
     public String getPoster_path() {
         return poster_path;
     }

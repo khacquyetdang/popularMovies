@@ -5,10 +5,12 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.popularmovies.dang.popularmovies.R;
 import com.popularmovies.dang.popularmovies.data.Movie;
+import com.squareup.picasso.Picasso;
 
 /**
  * A placeholder fragment containing a simple view.
@@ -19,6 +21,7 @@ public class MovieDetailActivityFragment extends Fragment {
     private TextView descriptionView;
     private TextView releaseDateTxtView;
     private TextView rateTingView;
+    private ImageView posterImgView;
 
     public MovieDetailActivityFragment() {
     }
@@ -43,5 +46,9 @@ public class MovieDetailActivityFragment extends Fragment {
 
         rateTingView = (TextView) getActivity().findViewById(R.id.movie_detail_rate);
         rateTingView.setText("" + movie.getVote_averagev());
+
+        posterImgView = (ImageView) getActivity().findViewById(R.id.fragment_movie_detail_poster);
+        Picasso.with(getActivity()).load(movie.getPoster_full_path()).into(posterImgView);
+
     }
 }
